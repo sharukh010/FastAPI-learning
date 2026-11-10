@@ -13,3 +13,7 @@ def get_item(item_id: int):
 def pick(unit: Unit): 
     return {"unit": unit.value}
 
+@app.get("/items")
+def list_items(skip: int = 0 , limit: int = 10): 
+    return {"skip":skip,"limit":limit}
+
