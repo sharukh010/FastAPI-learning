@@ -1,6 +1,6 @@
 from enum import Enum 
 from typing import Annotated
-from fastapi import FastAPI,Query 
+from fastapi import FastAPI,Query,HTTPException
 
 app = FastAPI(title="Unit Convertor")
 
@@ -33,10 +33,17 @@ def convert_distance(unit: Distance,value: Annotated[float,Query(ge=0)],decimals
 @app.get("/convert/temperature/{unit}")
 def convert_temperature(unit: Temp,value: float,decimals: Annotated[int, Query(ge=0,le=6)] = 2 ): 
     if unit == Temp.c: 
+        if value < -273.15: # absolute zero temperature in Celcius
+            raise HTTPException(
+                status_code=422,
+                detail="Temperature cannot be below absolute zero (-273.15 °C)."
+            )
         return {
             "result": round(value * 9/5+32,decimals),
             "unit":"f"
         }
+    if value < -459.67: # absolute zero temperature in Farenheit
+        raise HTTPException(status_code = 422,detail="Temperature cannot be below absolute zero (-459.67 °F).")
     return {
         "result":round((value-32)*5/9,decimals),
         "unit": "c"
