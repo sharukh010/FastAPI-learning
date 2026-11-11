@@ -81,3 +81,11 @@ def get_book(book_id: Annotated[int,Path(ge=1)]):
         if b.id == book_id: 
             return b 
     raise HTTPException(status_code=404,detail="Book not found")
+
+@app.delete("/books/{book_id}",status_code=204)
+def delete_book(book_id: Annotated[int,Path(ge=1)] ): 
+    for b in books: 
+        if b.id == book_id: 
+            books.remove(b)
+            return 
+    raise HTTPException(status_code=404,detail="Book not found")
