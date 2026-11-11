@@ -62,4 +62,15 @@ def list_books(
     result = result[skip:skip+limit]
     return result
 
-@
+@app.get("/books/stats")
+def stats(): 
+    total = len(books)
+    available = len(
+        [b for b in books if b.available == True ]
+    )
+    borrowed = total - available 
+    return {
+        "total": total,
+        "available": available,
+        "borrowed": borrowed
+    }
