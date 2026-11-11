@@ -81,7 +81,19 @@ def stats():
         "available": available,
         "borrowed": borrowed
     }
-
+@app.put("/books/{book_id}")
+def update_book(book_id: int,payload: BookCreate): 
+    book = None 
+    for b in books: 
+        if b.id == book_id: 
+            book = b 
+            break 
+    if book is None: 
+        raise HTTPException(status_code=404,detail="Book not found")
+    book.title = payload.title 
+    book.author = payload.author 
+    book.pages = payload.pages 
+    return book 
 @app.get("/books/{book_id}",response_model=Book)
 def get_book(book_id: Annotated[int,Path(ge=1)]): 
     for b in books: 
