@@ -12,6 +12,13 @@ class BookCreate(BaseModel):
 class Book(BookCreate): 
     id: int 
     available: bool = True 
+    borrowed_for_days: int = 0
+
+class BookBorrow(BaseModel): 
+    id: int
+    title: str 
+    available: bool = False 
+    borrowed_for_days: int 
 
 books = [
     Book(id=1, title="Atomic Habits", author="James Clear", pages=320, available=True),
@@ -20,9 +27,9 @@ books = [
     Book(id=4, title="Deep Work", author="Cal Newport", pages=304, available=True),
     Book(id=5, title="The Psychology of Money", author="Morgan Housel", pages=256, available=True),
     Book(id=6, title="Ikigai", author="Hector Garcia", pages=208, available=True),
-    Book(id=7, title="Think and Grow Rich", author="Napoleon Hill", pages=320, available=False),
+    Book(id=7, title="Think and Grow Rich", author="Napoleon Hill", pages=320, available=False,borrowed_for_days=14),
     Book(id=8, title="The Power of Habit", author="Charles Duhigg", pages=400, available=True),
-    Book(id=9, title="Zero to One", author="Peter Thiel", pages=224, available=False),
+    Book(id=9, title="Zero to One", author="Peter Thiel", pages=224, available=False,borrowed_for_days=10),
     Book(id=10, title="The 7 Habits of Highly Effective People", author="Stephen Covey", pages=381, available=True),
 ] 
 next_id = 11 
@@ -89,3 +96,21 @@ def delete_book(book_id: Annotated[int,Path(ge=1)] ):
             books.remove(b)
             return 
     raise HTTPException(status_code=404,detail="Book not found")
+
+
+@app.post("/books/{book_id}/borrow",response_model=BookBorrow)
+def borrow_book(book_id: int,days: Annotated[int,Query(gt=0,le=14)] = 14):
+    book = None 
+    for b in books: 
+        if b.id == book_id: 
+            book = b 
+            break 
+
+    if book is None: 
+        raise HTTPException(status_code=404,detail="Book not found")
+    elif book.available is False: 
+        raise HTTPException(status_code=409,detail="Book is already borrowed")
+    borrowed = BookBorrow(id=book_id,title=book.title,borrowed_for_days=days)
+    book.available = False 
+    book.borrowed_for_days = days 
+    return borrowed
