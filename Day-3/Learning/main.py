@@ -10,6 +10,7 @@ class TodoCreate(BaseModel):
     title: str 
     description: str | None = None 
     done: bool = False 
+    priority: int = 1 
 
 class Todo(TodoCreate): 
     id: int
