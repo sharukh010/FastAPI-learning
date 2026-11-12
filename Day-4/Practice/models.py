@@ -13,6 +13,7 @@ class Address(BaseModel):
 
 class StudentCreate(BaseModel): 
     name: str = Field(min_length=3,max_length=50,pattern=r"^[A-Za-z ]+$",examples=["sharukh khan","salman khan"])
+    bio: str | None= Field(default=None,max_length=200,examples="I am a studying CS Major")
     email: EmailStr = Field(examples=["sharukh@example.com","salman@example.com"])
     phone: str = Field(pattern=r"^[6-9]\d{9}$",examples=["9876543231"])
     age: int = Field(ge=10,le=60,examples=[15,19])
@@ -54,6 +55,7 @@ class StudentCreate(BaseModel):
 class Student(BaseModel):
     id: int 
     name: str = Field(min_length=3,max_length=50,pattern=r"^[A-Za-z ]+$")
+    bio: str | None= Field(default=None,max_length=200,examples="I am a studying CS Major")
     email: EmailStr 
     phone: str = Field(pattern=r"^[6-9]\d{9}$")
     age: int = Field(ge=10,le=60)

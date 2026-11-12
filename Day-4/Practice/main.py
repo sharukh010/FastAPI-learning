@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Path, HTTPException
-from models import StudentCreate, Student , StudentOut
+from models import StudentCreate, Student , StudentOut , Course 
 from typing import Annotated
 
 app = FastAPI()
@@ -16,8 +16,13 @@ def create_student(payload: StudentCreate):
     return student
 
 @app.get("/students",response_model=list[StudentOut])
-def list_students(): 
-    return students 
+def list_students(course: Course | None = None):
+    results = students 
+    if course is None: 
+        return results 
+    else: 
+        results = [s for s in results if s.course == course]
+    return results  
 
 @app.get("/students/{student_id}",response_model=StudentOut)
 def get_student(student_id: Annotated[int,Path(ge=1)]): 
