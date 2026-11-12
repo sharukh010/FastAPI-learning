@@ -7,20 +7,20 @@ class Course(str,Enum):
     gcse = "gcse"
 
 class Address(BaseModel): 
-    city: str = Field(min_length=2,max_length=50)
-    state: str = Field(min_length=3)
-    pincode: str = Field(pattern=r"\d{6}$")
+    city: str = Field(min_length=2,max_length=50,examples=["Vijayawada","Hyderabad"])
+    state: str = Field(min_length=3,examples=["Andhra Pradesh","Telengana"])
+    pincode: str = Field(pattern=r"\d{6}$",examples=["520013","500001"])
 
 class StudentCreate(BaseModel): 
-    name: str = Field(min_length=3,max_length=50,pattern=r"^[A-Za-z ]+$")
-    email: EmailStr 
-    phone: str = Field(pattern=r"^[6-9]\d{9}$")
-    age: int = Field(ge=10,le=60)
+    name: str = Field(min_length=3,max_length=50,pattern=r"^[A-Za-z ]+$",examples=["sharukh khan","salman khan"])
+    email: EmailStr = Field(examples=["sharukh@example.com","salman@example.com"])
+    phone: str = Field(pattern=r"^[6-9]\d{9}$",examples=["9876543231"])
+    age: int = Field(ge=10,le=60,examples=[15,19])
     course: Course 
-    password: str 
-    confirm_password: str 
+    password: str = Field(examples=["hello123","Hello@01"])
+    confirm_password: str = Field(examples=["hello123","Hello@01"])
     address: Address
-    guardian_email: EmailStr | None = None 
+    guardian_email: EmailStr | None = Field(default=None,examples=["amitabachan@example.com","amirkhan@example.com",None])
 
     @field_validator("password")
     @classmethod
