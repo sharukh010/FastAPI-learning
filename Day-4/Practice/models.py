@@ -67,6 +67,7 @@ class Student(BaseModel):
 class StudentOut(BaseModel): 
     id: int 
     name: str = Field(min_length=3,max_length=50,pattern=r"^[A-Za-z ]+$")
+    bio: str | None = None
     email: EmailStr 
     course: Course 
     address: Address 
