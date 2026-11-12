@@ -6,10 +6,10 @@ class Course(str,Enum):
     ap_cs = "ap_cs"
     gcse = "gcse"
 
-class Address(BaseException): 
+class Address(BaseModel): 
     city: str = Field(min_length=2,max_length=50)
     state: str = Field(min_length=3)
-    pincode: str = Field(pattern=r"^/d{6}$")
+    pincode: str = Field(pattern=r"\d{6}$")
 
 class StudentCreate(BaseModel): 
     name: str = Field(min_length=3,max_length=50,pattern=r"^[A-Za-z ]+$")
@@ -29,7 +29,7 @@ class StudentCreate(BaseModel):
             raise ValueError("Password must contain Upper case characters")
         elif not any(c.isdigit() for c in v): 
             raise ValueError("Password must contain atleast one digit")
-        elif not any((c in "!@#$%^&*()_+-=[]\{\};:\'\"\\|,.<>/?~") for c in v): 
+        elif not any((c in "!@#$%^&*()_+-=[];:'|,.<>/?~") for c in v): 
             raise ValueError("Password must contain atleast one special character")
         return v 
 
