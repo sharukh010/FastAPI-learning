@@ -1,5 +1,7 @@
-from fastapi import FastAPI , HTTPException,status
+from fastapi import FastAPI , HTTPException,status,Query
 from pydantic import BaseModel, Field 
+from datetime import datetime 
+from typing import Annotated
 
 app = FastAPI(title="Notes API")
 
@@ -17,7 +19,7 @@ class Note(NoteCreate):
 notes: dict[int,Note] = {}
 next_id = 1 
 
-def get_or_404(note_id: int)-> Note: 
+def get_or_404(note_id: int | None = None)-> Note: 
     note = notes.get(note_id)
     if note is None: 
         raise HTTPException(status_code=404,detail="Note not found")
@@ -32,8 +34,15 @@ def create_note(data: NoteCreate):
     return note  
 
 @app.get("/notes",response_model=list[Note])
-def list_notes(): 
-    return list(notes.values())
+def list_notes(
+    search: Annotated[str | None,Query(min_length=1,max_length=100)] = None
+    ): 
+    result = list(notes.values())
+    if search is None: 
+        return result 
+    result = [n for n in result if search.lower() in n.title.lower()]
+    
+    return result
 
 @app.get("/notes/{note_id}",response_model=Note)
 def read_note(note_id: int):
