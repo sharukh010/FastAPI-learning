@@ -1,0 +1,60 @@
+from fastapi import FastAPI , HTTPException,status
+from pydantic import BaseModel, Field 
+
+app = FastAPI(title="Notes API")
+
+class NoteCreate(BaseModel): 
+    title: str | None = Field(default=None,min_length=1,max_length=100,examples=["Practice FastAPI"])
+    content: str | None = Field(default=None,examples=["Practice Day-5"])
+
+class NoteUpdate(BaseModel): 
+    title: str | None = Field(default=None,min_length=1,max_length=100,examples=["Practice FastAPI"])
+    content: str | None = Field(default=None,examples=["Practice Day-5"])
+
+class Note(NoteCreate): 
+    id: int 
+
+notes: dict[int,Note] = {}
+next_id = 1 
+
+def get_or_404(note_id: int)-> Note: 
+    note = notes.get(note_id)
+    if note is None: 
+        raise HTTPException(status_code=404,detail="Note not found")
+    return note 
+
+@app.post("/notes",response_model=Note,status_code=status.HTTP_201_CREATED)
+def create_note(data: NoteCreate): 
+    global next_id 
+    note = Note(id=next_id,**data.model_dump())
+    notes[next_id] = note 
+    next_id += 1 
+    return note  
+
+@app.get("/notes",response_model=list[Note])
+def list_notes(): 
+    return list(notes.values())
+
+@app.get("/notes/{note_id}",response_model=Note)
+def read_note(note_id: int):
+    return get_or_404(note_id)
+
+@app.put("/notes/{note_id}",response_model=Note)
+def replace_note(note_id: int, data: NoteCreate): 
+    get_or_404(note_id)
+    note = Note(id=note_id,**data.model_dump())
+    notes[note_id] = note 
+    return note 
+
+@app.patch("/notes/{note_id}",response_model=Note)
+def update_note(note_id: int, data: NoteUpdate): 
+    note = get_or_404(note_id)
+    changes = data.model_dump(exclude_unset=True)
+    updated = note.model_copy(update=changes)
+    notes[note_id] = updated 
+    return updated 
+
+@app.delete("/notes/{note_id}",status_code=status.HTTP_204_NO_CONTENT)
+def delete_note(note_id: int): 
+    get_or_404(note_id)
+    del notes[note_id]
