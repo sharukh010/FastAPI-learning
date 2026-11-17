@@ -61,6 +61,16 @@ async def validation_handler(request: Request,exc: RequestValidationError):
         }
     )
 
+@app.exception_handler(Exception)
+async def exception_handler(request: Request,exc: Exception): 
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content = {
+            "error": "internal_server_error",
+            "details": "something went wrong"
+        }
+    )
+
 @app.post("/books",response_model=Book,status_code=status.HTTP_201_CREATED)
 def create_book(data: BookIn): 
     global next_id
@@ -97,7 +107,7 @@ def update_book_details(book_id:int, payload: BookUpdate):
     if any (b.isbn == payload.isbn and b.id != book_id for b in books.values()): 
         raise DuplicateISBN(payload.isbn)
     old_book = books[book_id].model_dump()
-    old_book.update(**payload.model_dump(exclude_unset=True))
+    old_book.update(payload.model_dump(exclude_unset=True))
     new_book = Book(**old_book)
     books[book_id] = new_book 
     return books[book_id]
