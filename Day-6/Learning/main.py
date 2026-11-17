@@ -32,6 +32,20 @@ async def not_found_handler(request: Request, exc: BookNotFound):
         }
     )
 
+class DuplicateISBN(Exception): 
+    def __init__(self,isbn: str): 
+        self.isbn = isbn 
+
+@app.exception_handler(DuplicateISBN)
+async def duplicate_handler(request: Request, exc: DuplicateISBN): 
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            "error":"duplicate_isbn",
+            "message": f"ISBN {exc.isbn} already exists"
+        }
+    )
+
 @app.exception_handler(RequestValidationError)
 async def validation_handler(request: Request,exc: RequestValidationError): 
     return JSONResponse(
@@ -46,7 +60,7 @@ async def validation_handler(request: Request,exc: RequestValidationError):
 def create_book(data: BookIn): 
     global next_id
     if any(b.isbn == data.isbn for b in books.values()): 
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="ISBN already exists")
+        raise DuplicateISBN(data.isbn)
     book = Book(id=next_id,**data.model_dump())
     books[next_id] = book 
     next_id += 1 
@@ -67,10 +81,7 @@ def update_book(book_id: int, payload: BookIn):
     if book_id not in books: 
         raise BookNotFound(book_id)
     if any(b.isbn == payload.isbn and b.id != book_id for b in books.values()): 
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="ISBN already exists"
-        )
+        raise DuplicateISBN(payload.isbn)
     books[book_id] = Book(id=book_id,**payload.model_dump())
     return books[book_id]
 
