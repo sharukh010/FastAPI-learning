@@ -1,2 +1,2 @@
-todos = [] 
+todos = {}
 next_id = 1 
