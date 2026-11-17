@@ -49,7 +49,7 @@ def health():
         "status": "ok"
     }
 
-@app.post("/todos",response_model=Todo)
+@app.post("/todos",response_model=Todo,status_code=status.HTTP_201_CREATED)
 def create_todo(payload: TodoCreate): 
     global next_id 
 
