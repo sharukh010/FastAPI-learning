@@ -13,6 +13,10 @@ class SortBy(str,Enum):
     priority = "priority"
     title = "title"
 
+class SortOrder(str,Enum): 
+    asc = "asc"
+    desc = "desc"
+
 class TodoCreate(BaseModel):
     title: str = Field(min_length=1,max_length=100,examples=["Practice FastAPI"])
     description: str | None = Field(default=None,max_length=500,examples=["Do the Todo API Project"])
