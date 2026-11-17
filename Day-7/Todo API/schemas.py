@@ -7,6 +7,12 @@ class Priority(str,Enum):
     medium = "medium"
     high = "high"
 
+class SortBy(str,Enum): 
+    created_at = "created_at"
+    due_date = "due_date"
+    priority = "priority"
+    title = "title"
+
 class TodoCreate(BaseModel):
     title: str = Field(min_length=1,max_length=100,examples=["Practice FastAPI"])
     description: str | None = Field(default=None,max_length=500,examples=["Do the Todo API Project"])
