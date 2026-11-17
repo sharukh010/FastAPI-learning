@@ -11,6 +11,11 @@ class BookIn(BaseModel):
     author: str = Field(min_length=3,examples=["Monika Halan"])
     year: int = Field(gt=0,le=2026,examples=[2023])
 
+class BookUpdate(BaseModel): 
+    isbn: str | None = Field(default=None,min_length=10,max_length=13,examples=["9789356991460"])
+    title: str | None = Field(default=None,min_length=1,examples=["Let's Talk Mutual Funds: A Systematic, Smart Way to Make Them Work for You"])
+    author: str | None = Field(default=None,min_length=3,examples=["Monika Halan"])
+    year: int | None = Field(default=None,gt=0,le=2026,examples=[2023])
 
 class Book(BookIn): 
     id: int 
@@ -83,6 +88,18 @@ def update_book(book_id: int, payload: BookIn):
     if any(b.isbn == payload.isbn and b.id != book_id for b in books.values()): 
         raise DuplicateISBN(payload.isbn)
     books[book_id] = Book(id=book_id,**payload.model_dump())
+    return books[book_id]
+
+@app.patch("/books/{book_id}",response_model=Book)
+def update_book_details(book_id:int, payload: BookUpdate): 
+    if book_id not in books: 
+        raise BookNotFound(book_id)
+    if any (b.isbn == payload.isbn and b.id != book_id for b in books.values()): 
+        raise DuplicateISBN(payload.isbn)
+    old_book = books[book_id].model_dump()
+    old_book.update(**payload.model_dump(exclude_unset=True))
+    new_book = Book(**old_book)
+    books[book_id] = new_book 
     return books[book_id]
 
 @app.delete("/books/{book_id}",status_code=status.HTTP_204_NO_CONTENT)
