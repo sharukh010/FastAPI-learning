@@ -12,7 +12,7 @@ class TodoCreate(BaseModel):
     description: str | None = Field(default=None,max_length=500)
     completed: bool = False 
     priority: Priority = Priority.medium
-    due_date: str 
+    due_date: str = Field(pattern=r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")
 
 
 class TodoPatch(BaseModel): 
@@ -20,7 +20,7 @@ class TodoPatch(BaseModel):
     description: str | None = Field(default=None,max_length=500)
     completed: bool | None  = None  
     priority: Priority | None = None 
-    due_date: str | None = None 
+    due_date: str | None = Field(default=None,pattern=r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")
 
 class Todo(TodoCreate): 
     id: int 
