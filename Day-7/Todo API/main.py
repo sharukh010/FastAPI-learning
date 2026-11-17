@@ -1,11 +1,11 @@
-from fastapi import FastAPI,status, Request
+from fastapi import FastAPI,status, Request, Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from errors import TodoNotFound
 from datetime import datetime 
 from zoneinfo import ZoneInfo
-from schemas import TodoCreate, Todo , TodoPatch
-from datetime import datetime
+from schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse
+from datetime import datetime, date
 from storage import next_id , todos 
 
 zone = ZoneInfo("Asia/Kolkata")
@@ -59,3 +59,26 @@ def create_todo(payload: TodoCreate):
     next_id += 1 
     return todo 
 
+@app.get("/todos",response_model=TodoListResponse,status_code=status.HTTP_200_OK)
+def list_todos(
+    completed: bool | None  = None ,
+    priority: Priority | None = None , 
+    search: str | None = Query(default=None,min_length=1),
+    due_before: date | None = None, 
+    due_after: date | None = None ,
+    sort_by: SortBy = SortBy.created_at,
+    order: SortOrder = SortOrder.asc , 
+    limit: int = Query(default=10,ge=1,le=100),
+    offset: int = Query(default=0,ge=0)
+): 
+    # TODO: add the logic of filtering 
+
+    result = list(todos.values())
+    result = result[offset:offset+limit]
+    response = TodoListResponse(
+        total=len(result),
+        limit=limit,
+        offset=offset,
+        items=result,
+    )
+    return response 

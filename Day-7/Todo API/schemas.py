@@ -41,7 +41,7 @@ class TodoListResponse(BaseModel):
     total : int 
     limit: int 
     offset: int 
-    items: list[Todo] = []
+    items: list[Todo] | None = None 
 
 class StatsResponse(BaseModel): 
     total : int 
