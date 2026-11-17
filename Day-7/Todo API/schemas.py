@@ -8,11 +8,11 @@ class Priority(str,Enum):
     high = "high"
 
 class TodoCreate(BaseModel):
-    title: str = Field(min_length=1,max_length=100)
-    description: str | None = Field(default=None,max_length=500)
-    completed: bool = False 
-    priority: Priority = Priority.medium
-    due_date: str = Field(pattern=r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")
+    title: str = Field(min_length=1,max_length=100,examples=["Practice FastAPI"])
+    description: str | None = Field(default=None,max_length=500,examples=["Do the Todo API Project"])
+    completed: bool = Field(default=False,examples=[True]) 
+    priority: Priority = Field(default=Priority.medium,examples=[Priority.low,Priority.high])
+    due_date: str = Field(pattern=r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$",examples=["2026-11-20"])
 
 
 class TodoPatch(BaseModel): 
