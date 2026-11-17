@@ -33,4 +33,4 @@ class StatsResponse(BaseModel):
     completed: int 
     pending: int 
     overdue: int 
-    by_priority: dict[str]
+    by_priority: dict[str,int]
