@@ -144,6 +144,16 @@ def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate):
     todos[todo_id] = Todo(id=old_todo.id,created_at=old_todo.created_at,**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
     return todos[todo_id]
 
+@app.patch("/todos/{todo_id}",response_model=Todo)
+def update_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoPatch): 
+    if todo_id not in todos: 
+        raise TodoNotFound
+    old_todo = todos[todo_id]
+    updated_todo = old_todo.model_dump()
+    updated_todo.update(**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
+    todos[todo_id] = updated_todo
+    return todos[todo_id]
+
 @app.delete("/todos/{todo_id}",status_code=status.HTTP_204_NO_CONTENT)
 def delete_todo(todo_id: int = Path(ge=1)): 
     if todo_id not in todos: 
