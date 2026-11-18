@@ -5,7 +5,7 @@ from errors import TodoNotFound
 from datetime import datetime 
 from zoneinfo import ZoneInfo
 from schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
-from datetime import datetime, date
+from datetime import datetime, date, timedelta 
 from storage import next_id , todos 
 
 zone = ZoneInfo("Asia/Kolkata")
@@ -76,6 +76,11 @@ def list_todos(
     result = list(todos.values())
     total = len(result)
     result = result[offset:offset+limit]
+    if sort_by == SortBy.due_date: 
+        result.sort(key=lambda x: x.due_date if x.due_date is not None else (datetime.now().date()+timedelta(100)))
+    if order == SortOrder.desc: 
+        result = result[::-1]
+    
     response = TodoListResponse(
         total=total,
         limit=limit,
