@@ -18,7 +18,7 @@ async def not_found(request: Request, exc: TodoNotFound):
         status_code=status.HTTP_404_NOT_FOUND,
         content = {
             "error": "not_found",
-            "message": f"Todo {exc.id} not found"
+            "message": f"Todo with id {exc.id} not found"
         }
     )
 
