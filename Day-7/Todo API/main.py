@@ -55,6 +55,7 @@ def create_todo(payload: TodoCreate):
     global next_id 
 
     current_time = datetime.now(zone)
+    payload.title = payload.title.strip()
     todo = Todo(id=next_id,**payload.model_dump(),created_at=current_time,updated_at=current_time)
     todos[next_id] = todo 
     next_id += 1 
@@ -141,6 +142,7 @@ def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate):
     if todo_id not in todos: 
         raise TodoNotFound(todo_id=todo_id)
     old_todo = todos[todo_id]
+    payload.title = payload.title.strip()
     todos[todo_id] = Todo(id=old_todo.id,created_at=old_todo.created_at,**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
     return todos[todo_id]
 
@@ -148,6 +150,8 @@ def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate):
 def update_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoPatch): 
     if todo_id not in todos: 
         raise TodoNotFound
+    if payload.title is not None: 
+        payload.title = payload.title.strip()
     old_todo = todos[todo_id]
     updated_todo = old_todo.model_dump()
     updated_todo.update(**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
