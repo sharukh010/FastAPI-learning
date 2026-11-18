@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
 from datetime import datetime, date, timedelta 
 from storage import next_id , todos 
+from typing import Annotated
 
 zone = ZoneInfo("Asia/Kolkata")
 
@@ -89,7 +90,7 @@ def list_todos(
     total = len(result)
     result = result[offset:offset+limit]
     if sort_by == SortBy.due_date: 
-        result.sort(key=lambda x: x.due_date if x.due_date is not None else (datetime.now().date()+timedelta(100)))
+        result.sort(key=lambda x: x.due_date if x.due_date is not None else (datetime.now(zone).date()+timedelta(100)))
     elif sort_by == SortBy.title: 
         result.sort(key=lambda x: x.title.lower())
     elif sort_by == SortBy.created_at: 
@@ -112,7 +113,7 @@ def list_todos(
 
 @app.get("/todos/stats",response_model=StatsResponse,status_code=status.HTTP_200_OK)
 def get_stats(): 
-    today = datetime.now().date()
+    today = datetime.now(zone).date()
     total = len(todos.values())
     completed = len([t for t in todos.values() if t.completed == True])
     pending = len([t for t in todos.values() if t.completed == False])
@@ -135,5 +136,17 @@ def get_todo(todo_id:int = Path(ge=1)):
         raise TodoNotFound(todo_id=todo_id)
     return todos[todo_id]
 
+@app.put("/todos/{todo_id}",response_model=Todo)
+def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate): 
+    if todo_id not in todos: 
+        raise TodoNotFound(todo_id=todo_id)
+    old_todo = todos[todo_id]
+    todos[todo_id] = Todo(id=old_todo.id,created_at=old_todo.created_at,**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
+    return todos[todo_id]
 
-    
+@app.delete("/todos/{todo_id}",status_code=status.HTTP_204_NO_CONTENT)
+def delete_todo(todo_id: int = Path(ge=1)): 
+    if todo_id not in todos: 
+        raise TodoNotFound(todo_id=todo_id)
+    del todos[todo_id]
+
