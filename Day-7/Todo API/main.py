@@ -56,6 +56,8 @@ def create_todo(payload: TodoCreate):
 
     current_time = datetime.now(zone)
     payload.title = payload.title.strip()
+    if payload.title == "": 
+        raise RequestValidationError("title cannot be empty")
     todo = Todo(id=next_id,**payload.model_dump(),created_at=current_time,updated_at=current_time)
     todos[next_id] = todo 
     next_id += 1 
@@ -143,6 +145,8 @@ def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate):
         raise TodoNotFound(todo_id=todo_id)
     old_todo = todos[todo_id]
     payload.title = payload.title.strip()
+    if payload.title == "": 
+            raise RequestValidationError("title cannot be empty")
     todos[todo_id] = Todo(id=old_todo.id,created_at=old_todo.created_at,**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
     return todos[todo_id]
 
