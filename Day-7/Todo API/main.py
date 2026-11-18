@@ -71,6 +71,7 @@ def list_todos(
     limit: int = Query(default=10,ge=1,le=100),
     offset: int = Query(default=0,ge=0)
 ): 
+    priority = {Priority.low: 1, Priority.medium: 2,Priority.high: 3}
     # TODO: add the logic of filtering 
 
     result = list(todos.values())
@@ -78,6 +79,13 @@ def list_todos(
     result = result[offset:offset+limit]
     if sort_by == SortBy.due_date: 
         result.sort(key=lambda x: x.due_date if x.due_date is not None else (datetime.now().date()+timedelta(100)))
+    elif sort_by == SortBy.title: 
+        result.sort(key=lambda x: x.title)
+    elif sort_by == SortBy.created_at: 
+        result.sort(key=lambda x: x.created_at)
+    elif sort_by == SortBy.priority: 
+        result.sort(key=lambda x: priority[x.priority])
+
     if order == SortOrder.desc: 
         result = result[::-1]
     
