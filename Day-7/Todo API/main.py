@@ -74,9 +74,10 @@ def list_todos(
     # TODO: add the logic of filtering 
 
     result = list(todos.values())
+    total = len(result)
     result = result[offset:offset+limit]
     response = TodoListResponse(
-        total=len(result),
+        total=total,
         limit=limit,
         offset=offset,
         items=result,
