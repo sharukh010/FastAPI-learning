@@ -71,24 +71,37 @@ def list_todos(
     limit: int = Query(default=10,ge=1,le=100),
     offset: int = Query(default=0,ge=0)
 ): 
-    priority = {Priority.low: 1, Priority.medium: 2,Priority.high: 3}
-    # TODO: add the logic of filtering 
+    priority_values = {Priority.low: 1, Priority.medium: 2,Priority.high: 3}
 
     result = list(todos.values())
+    if search is not None: 
+        result = [t for t in result if search.lower() in t.title.lower()]
+    if completed is not None: 
+        result = [t for t in result if t.completed == completed]
+    if due_before is not None: 
+        result = [t for t in result if t.due_date is not None and (due_before-t.due_date).days>0]
+    if due_after is not None: 
+        result = [t for t in result if t.due_date is not None and (t.due_date-due_after).days >0]
+    if priority is not None: 
+        result = [t for t in result if t.priority == priority]
+
+
     total = len(result)
     result = result[offset:offset+limit]
     if sort_by == SortBy.due_date: 
         result.sort(key=lambda x: x.due_date if x.due_date is not None else (datetime.now().date()+timedelta(100)))
     elif sort_by == SortBy.title: 
-        result.sort(key=lambda x: x.title)
+        result.sort(key=lambda x: x.title.lower())
     elif sort_by == SortBy.created_at: 
         result.sort(key=lambda x: x.created_at)
     elif sort_by == SortBy.priority: 
-        result.sort(key=lambda x: priority[x.priority])
+        result.sort(key=lambda x: priority_values[x.priority])
+    
+    print(result)
 
     if order == SortOrder.desc: 
         result = result[::-1]
-    
+
     response = TodoListResponse(
         total=total,
         limit=limit,
