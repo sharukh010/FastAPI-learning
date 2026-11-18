@@ -1,7 +1,7 @@
 from fastapi import FastAPI,status, Request, Query, Path 
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from errors import TodoNotFound, DuplicateTitle
+from errors import TodoNotFound, DuplicateTitle , EmptyTitle
 from datetime import datetime 
 from zoneinfo import ZoneInfo
 from schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
@@ -18,6 +18,14 @@ def isTitleUnique(title: str):
         return True 
     return False 
 
+def process_and_check_title(title: str): 
+    title = title.strip()
+    if not isTitleUnique(title): 
+        raise DuplicateTitle(title)
+    if title == "": 
+        raise EmptyTitle()
+    return title 
+
 @app.exception_handler(TodoNotFound)
 async def not_found(request: Request, exc: TodoNotFound): 
     return JSONResponse(
@@ -29,13 +37,23 @@ async def not_found(request: Request, exc: TodoNotFound):
     )
 
 @app.exception_handler(DuplicateTitle)
-async def duplicate_title(request: Request, exc: RequestValidationError): 
+async def duplicate_title(request: Request, exc: DuplicateTitle): 
     return JSONResponse(
         status_code = status.HTTP_409_CONFLICT,
         content= {
 
             "error": "duplicate_title",
             "message": f"todo with title '{exc.title}' already exists" 
+        }
+    )
+
+@app.exception_handler(EmptyTitle)
+async def empty_title(request: Request, exc: EmptyTitle): 
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={
+            "error": "empty_title",
+            "message": "title cannot be empty"
         }
     )
 
@@ -71,11 +89,7 @@ def create_todo(payload: TodoCreate):
     global next_id 
 
     current_time = datetime.now(zone)
-    payload.title = payload.title.strip()
-    if payload.title == "": 
-        raise RequestValidationError("title cannot be empty")
-    if not isTitleUnique(payload.title): 
-        raise DuplicateTitle(payload.title)
+    payload.title = process_and_check_title(payload.title)
     todo = Todo(id=next_id,**payload.model_dump(),created_at=current_time,updated_at=current_time)
     todos[next_id] = todo 
     next_id += 1 
@@ -162,12 +176,7 @@ def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate):
     if todo_id not in todos: 
         raise TodoNotFound(todo_id=todo_id)
     old_todo = todos[todo_id]
-    payload.title = payload.title.strip()
-    if payload.title == "": 
-            raise RequestValidationError("title cannot be empty")
-    if not isTitleUnique(payload.title): 
-        raise DuplicateTitle(payload.title)
-
+    payload.title = payload.title = process_and_check_title(payload.title)
     todos[todo_id] = Todo(id=old_todo.id,created_at=old_todo.created_at,**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
     return todos[todo_id]
 
@@ -176,11 +185,7 @@ def update_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoPatch):
     if todo_id not in todos: 
         raise TodoNotFound
     if payload.title is not None: 
-        payload.title = payload.title.strip()
-        if payload.title == "": 
-            raise RequestValidationError("title cannot be empty")
-        if not isTitleUnique(payload.title): 
-            raise DuplicateTitle(payload.title)
+        payload.title = payload.title = process_and_check_title(payload.title)
     old_todo = todos[todo_id]
     updated_todo = old_todo.model_dump()
     updated_todo.update(**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
