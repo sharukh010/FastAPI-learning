@@ -4,3 +4,5 @@ class TodoNotFound(Exception):
 class DuplicateTitle(Exception): 
     def __init__(self,title): 
         self.title = title 
+class EmptyTitle(Exception): 
+    pass 
