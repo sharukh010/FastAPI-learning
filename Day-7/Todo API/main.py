@@ -1,4 +1,4 @@
-from fastapi import FastAPI,status, Request, Query
+from fastapi import FastAPI,status, Request, Query, Path 
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from errors import TodoNotFound
@@ -128,3 +128,12 @@ def get_stats():
         by_priority={"low": low,"medium": medium,"high": high}
     )
     return response 
+
+@app.get("/todos/{todo_id}",response_model=Todo,status_code=status.HTTP_200_OK)
+def get_todo(todo_id:int = Path(ge=1)): 
+    if todo_id not in todos: 
+        raise TodoNotFound(todo_id=todo_id)
+    return todos[todo_id]
+
+
+    
