@@ -1,6 +1,6 @@
 from enum import Enum 
 from pydantic import BaseModel,Field 
-from datetime import datetime 
+from datetime import datetime,date  
 
 class Priority(str,Enum): 
     low = "low"
@@ -22,7 +22,7 @@ class TodoCreate(BaseModel):
     description: str | None = Field(default=None,max_length=500,examples=["Do the Todo API Project"])
     completed: bool = Field(default=False,examples=[True]) 
     priority: Priority = Field(default=Priority.medium,examples=[Priority.low,Priority.high])
-    due_date: str | None  = Field(default=None,pattern=r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$",examples=["2026-11-20"])
+    due_date: date | None  = Field(default=None,pattern=r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$",examples=["2026-11-20"])
 
 
 class TodoPatch(BaseModel): 
