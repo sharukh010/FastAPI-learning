@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from errors import TodoNotFound
 from datetime import datetime 
 from zoneinfo import ZoneInfo
-from schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse
+from schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
 from datetime import datetime, date
 from storage import next_id , todos 
 
@@ -81,5 +81,24 @@ def list_todos(
         limit=limit,
         offset=offset,
         items=result,
+    )
+    return response 
+
+@app.get("/todos/stats",response_model=StatsResponse,status_code=status.HTTP_200_OK)
+def get_stats(): 
+    today = datetime.now().date()
+    total = len(todos.values())
+    completed = len([t for t in todos.values() if t.completed == True])
+    pending = len([t for t in todos.values() if t.completed == False])
+    low = len([t for t in todos.values() if t.priority == Priority.low])
+    medium = len([t for t in todos.values() if t.priority == Priority.medium])
+    high = len([t for t in todos.values() if t.priority == Priority.high])
+    over_due = len([t for t in todos.values() if t.due_date is not None and (t.due_date-today).days < 0 ])
+    response = StatsResponse(
+        total=total,
+        completed=completed,
+        pending=pending,
+        overdue=over_due,
+        by_priority={"low": low,"medium": medium,"high": high}
     )
     return response 
