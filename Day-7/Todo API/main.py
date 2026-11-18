@@ -150,3 +150,10 @@ def delete_todo(todo_id: int = Path(ge=1)):
         raise TodoNotFound(todo_id=todo_id)
     del todos[todo_id]
 
+@app.delete("/todos")
+def delete_completed_todos(completed: bool): 
+    completed_todo_ids = [t.id for t in todos.values() if t.completed]
+    count = len(completed_todo_ids)
+    for id in completed_todo_ids: 
+        del todos[id]
+    return {"deleted":count}
