@@ -21,3 +21,7 @@ async def upload(file: UploadFile):
     file_id = f"{uuid.uuid4().hex}{Path(file.filename).suffix}"
     (UPLOAD_DIR/file_id).write_bytes(data)
     return {"id": file_id, "original_name": file.filename,"size":len(data)}
+
+@app.get("/files")
+def list_files(): 
+    return [{"id":p.name,"size":p.stat().st_size} for p in UPLOAD_DIR.iterdir()]
