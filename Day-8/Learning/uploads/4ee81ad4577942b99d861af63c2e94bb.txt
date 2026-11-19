@@ -1,0 +1,34 @@
+Three steps in a program
+1. input 
+2. process 
+3. output 
+ex: 
+1. input (ingredients)
+2. processing (program)
+3. output (dish)
+
+different types of input: 
+1. numbers with decimal values 
+ex: -4.5,0.6
+2. numbers without decimal values 
+ex: 11,0,-20
+3. text 
+4. on/off 
+5. images/text files/audio files etc 
+6. keyboard , mouse click 
+
+what is data types? 
+- it is the different types of data that are available in any programming language 
+1. Integer (int) -> numbers without decimal 
+ex: 12,-30,44 
+2. Float -> numbers with decimal values 
+ex: 0.03,4.56,-1.2 
+3. boolean (bool) -> it stores either true or false 
+ex: True , False 
+4. String (str) -> any text data that is written inside 'single quote', or "double quote" 
+ex: "naqiya","110"
+
+just with ingredients you cannot cook the food 
+you need 
+utensils -> variables / constants 
+tools -> functions / methods 
