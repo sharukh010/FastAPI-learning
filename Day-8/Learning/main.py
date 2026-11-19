@@ -1,5 +1,5 @@
 from typing import Annotated 
-from fastapi import FastAPI,Header,Response,Cookie  
+from fastapi import FastAPI,Header,Response,Cookie,Form  
 
 app = FastAPI() 
 
@@ -28,3 +28,8 @@ def set_cookie(response: Response):
 def del_cookie(response: Response): 
     response.delete_cookie("session_id")
     return {"msg": "cookie removed"}
+
+#Form Data 
+@app.post("/login")
+def login(username: Annotated[str, Form()], password: Annotated[str, Form()]): 
+    return {"username": username}
