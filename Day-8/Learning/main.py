@@ -1,5 +1,6 @@
 from typing import Annotated 
-from fastapi import FastAPI,Header,Response,Cookie,Form  
+from fastapi import FastAPI,Header,Response,Cookie,Form,File, UploadFile
+from fastapi.responses import FileResponse
 
 app = FastAPI() 
 
@@ -33,3 +34,18 @@ def del_cookie(response: Response):
 @app.post("/login")
 def login(username: Annotated[str, Form()], password: Annotated[str, Form()]): 
     return {"username": username}
+
+#File Upload 
+@app.post("/upload")
+async def upload(file: UploadFile): 
+    content = await file.read()
+    return {
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "size": len(content)
+    }
+
+#File download 
+@app.get("/download/{name}")
+def download(name: str): 
+    return FileResponse(f"Day-8/Learning/uploads/{name}",filename=name)
