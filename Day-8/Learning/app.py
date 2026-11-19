@@ -25,3 +25,10 @@ async def upload(file: UploadFile):
 @app.get("/files")
 def list_files(): 
     return [{"id":p.name,"size":p.stat().st_size} for p in UPLOAD_DIR.iterdir()]
+
+@app.get("/files/{file_id}",status_code=204)
+def get_file(file_id: str): 
+    path = UPLOAD_DIR / Path(file_id).name #Path().name picks last part of the file_id to avoid user to access files outside upload folder 
+    if not path.is_file(): 
+        raise HTTPException(404,"File not found")
+    return FileResponse(path)
