@@ -1,5 +1,6 @@
-from fastapi import APIRouter , status, Query, Path 
+from fastapi import APIRouter , status, Query, Path , Depends
 from app.schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
+from app.dependencies import FilteringAndPaginationDep
 from datetime import datetime, date, timedelta 
 from app.storage import next_id, todos,isTitleUnique, process_and_check_title 
 from zoneinfo import ZoneInfo
@@ -32,51 +33,43 @@ def create_todo(payload: TodoCreate):
 
 @router.get("/",response_model=TodoListResponse,status_code=status.HTTP_200_OK)
 def list_todos(
-    completed: bool | None  = None ,
-    priority: Priority | None = None , 
-    search: str | None = Query(default=None,min_length=1),
-    due_before: date | None = None, 
-    due_after: date | None = None ,
-    sort_by: SortBy = SortBy.created_at,
-    order: SortOrder = SortOrder.asc , 
-    limit: int = Query(default=10,ge=1,le=100),
-    offset: int = Query(default=0,ge=0)
+    p: Annotated[FilteringAndPaginationDep,Depends()]
 ): 
     priority_values = {Priority.low: 1, Priority.medium: 2,Priority.high: 3}
 
     result = list(todos.values())
-    if search is not None: 
-        result = [t for t in result if search.lower() in t.title.lower()]
-    if completed is not None: 
-        result = [t for t in result if t.completed == completed]
-    if due_before is not None: 
-        result = [t for t in result if t.due_date is not None and (due_before-t.due_date).days>0]
-    if due_after is not None: 
-        result = [t for t in result if t.due_date is not None and (t.due_date-due_after).days >0]
-    if priority is not None: 
-        result = [t for t in result if t.priority == priority]
+    if p.search is not None: 
+        result = [t for t in result if p.search.lower() in t.title.lower()]
+    if p.completed is not None: 
+        result = [t for t in result if t.completed == p.completed]
+    if p.due_before is not None: 
+        result = [t for t in result if t.due_date is not None and (p.due_before-t.due_date).days>0]
+    if p.due_after is not None: 
+        result = [t for t in result if t.due_date is not None and (t.due_date-p.due_after).days >0]
+    if p.priority is not None: 
+        result = [t for t in result if t.priority == p.priority]
 
 
     total = len(result)
-    result = result[offset:offset+limit]
-    if sort_by == SortBy.due_date: 
+    result = result[p.offset:p.offset+p.limit]
+    if p.sort_by == SortBy.due_date: 
         result.sort(key=lambda x: x.due_date if x.due_date is not None else (datetime.now(zone).date()+timedelta(100)))
-    elif sort_by == SortBy.title: 
+    elif p.sort_by == SortBy.title: 
         result.sort(key=lambda x: x.title.lower())
-    elif sort_by == SortBy.created_at: 
+    elif p.sort_by == SortBy.created_at: 
         result.sort(key=lambda x: x.created_at)
-    elif sort_by == SortBy.priority: 
+    elif p.sort_by == SortBy.priority: 
         result.sort(key=lambda x: priority_values[x.priority])
     
     print(result)
 
-    if order == SortOrder.desc: 
+    if p.order == SortOrder.desc: 
         result = result[::-1]
 
     response = TodoListResponse(
         total=total,
-        limit=limit,
-        offset=offset,
+        limit=p.limit,
+        offset=p.offset,
         items=result,
     )
     return response 
