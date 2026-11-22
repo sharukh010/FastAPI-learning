@@ -1,5 +1,19 @@
 from datetime import date, datetime
 from schemas import Todo, Priority
+import app.exceptions as exceptions 
+
+def isTitleUnique(title: str): 
+    if not any(title.lower().replace(" ","") == t.title.lower().replace(" ","") for t in todos.values()): 
+        return True 
+    return False 
+
+def process_and_check_title(title: str): 
+    title = title.strip()
+    if not isTitleUnique(title): 
+        raise exceptions.DuplicateTitle(title)
+    if title == "": 
+        raise exceptions.EmptyTitle()
+    return title 
 
 todos: dict[int, Todo] = {
     1: Todo(id=1, title="Finish FastAPI Day 7 project", description="Build the todo API with filtering and search",

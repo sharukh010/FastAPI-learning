@@ -4,27 +4,15 @@ from fastapi.responses import JSONResponse
 import app.exceptions as exceptions 
 from datetime import datetime 
 from zoneinfo import ZoneInfo
-from schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
+from app.schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
 from datetime import datetime, date, timedelta 
-from storage import next_id , todos 
+from app.storage import next_id, todos,isTitleUnique, process_and_check_title 
 from typing import Annotated
 
 zone = ZoneInfo("Asia/Kolkata")
 
 app = FastAPI(title="Todo API")
 
-def isTitleUnique(title: str): 
-    if not any(title.lower().replace(" ","") == t.title.lower().replace(" ","") for t in todos.values()): 
-        return True 
-    return False 
-
-def process_and_check_title(title: str): 
-    title = title.strip()
-    if not isTitleUnique(title): 
-        raise exceptions.DuplicateTitle(title)
-    if title == "": 
-        raise exceptions.EmptyTitle()
-    return title 
 
 # adding exception handlers 
 @app.add_exception_handler(exceptions.TodoNotFound,exceptions.not_found)
