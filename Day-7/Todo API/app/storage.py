@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from schemas import Todo, Priority
+from app.schemas import Todo, Priority
 import app.exceptions as exceptions 
 
 def isTitleUnique(title: str): 
