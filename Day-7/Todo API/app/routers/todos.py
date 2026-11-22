@@ -12,7 +12,9 @@ router = APIRouter(
     prefix="/todos",
     tags = ["Todos"],
     responses={
-        status.HTTP_404_NOT_FOUND: "not found"
+        status.HTTP_404_NOT_FOUND: {
+            "description": "not found"
+        }
     }
 )
 
