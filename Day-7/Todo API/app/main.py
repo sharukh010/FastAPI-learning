@@ -5,7 +5,7 @@ from app.routers import todos
 
 
 app = FastAPI(title="Todo API")
-app.include_router(todos.route)
+app.include_router(todos.router)
 
 
 # adding exception handlers 
