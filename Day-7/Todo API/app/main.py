@@ -9,11 +9,11 @@ app.include_router(todos.router)
 
 
 # adding exception handlers 
-@app.add_exception_handler(exceptions.TodoNotFound,exceptions.not_found)
-@app.add_exception_handler(exceptions.DuplicateTitle,exceptions.duplicate_title)
-@app.add_exception_handler(exceptions.EmptyTitle,exceptions.empty_title)
-@app.add_exception_handler(RequestValidationError,exceptions.validation_error)
-@app.add_exception_handler(Exception,exceptions.error_handler)
+app.add_exception_handler(exceptions.TodoNotFound,exceptions.not_found)
+app.add_exception_handler(exceptions.DuplicateTitle,exceptions.duplicate_title)
+app.add_exception_handler(exceptions.EmptyTitle,exceptions.empty_title)
+app.add_exception_handler(RequestValidationError,exceptions.validation_error)
+app.add_exception_handler(Exception,exceptions.error_handler)
 
 
 @app.get("/health")
