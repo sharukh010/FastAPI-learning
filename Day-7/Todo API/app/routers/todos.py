@@ -38,25 +38,29 @@ def list_todos(
     p: Annotated[FilteringAndPaginationDep,Depends()],
     db: Session = Depends(get_db)
 ): 
+    T = models.Todo 
     priority_values = {Priority.low: 1, Priority.medium: 2,Priority.high: 3}
 
-    result = list(todos.values())
+    stm = select(T)
     if p.search is not None: 
-        result = [t for t in result if p.search.lower() in t.title.lower()]
+        stm = stm.where(T.title.icontains(p.search))
     if p.completed is not None: 
-        result = [t for t in result if t.completed == p.completed]
+        stm = stm.where(T.completed == p.completed)
     if p.due_before is not None: 
-        result = [t for t in result if t.due_date is not None and (p.due_before-t.due_date).days>0]
+        stm = stm.where(T.due_date < p.due_before)
     if p.due_after is not None: 
-        result = [t for t in result if t.due_date is not None and (t.due_date-p.due_after).days >0]
+        stm = stm.where(T.due_date > p.due_after)
     if p.priority is not None: 
-        result = [t for t in result if t.priority == p.priority]
+        stm = stm.where(T.priority == p.priority)
 
+    result = db.scalars(stm).all()
 
     total = len(result)
-    result = result[p.offset:p.offset+p.limit]
     if p.sort_by == SortBy.due_date: 
-        result.sort(key=lambda x: x.due_date if x.due_date is not None else (datetime.now(zone).date()+timedelta(100)))
+        result.sort(key=lambda x: (
+            x.due_date is None, 
+            x.due_date or date.min 
+        ))
     elif p.sort_by == SortBy.title: 
         result.sort(key=lambda x: x.title.lower())
     elif p.sort_by == SortBy.created_at: 
@@ -64,16 +68,16 @@ def list_todos(
     elif p.sort_by == SortBy.priority: 
         result.sort(key=lambda x: priority_values[x.priority])
     
-    print(result)
 
     if p.order == SortOrder.desc: 
         result = result[::-1]
 
+    result = result[p.offset:p.offset+p.limit]
     response = TodoListResponse(
         total=total,
         limit=p.limit,
         offset=p.offset,
-        items=result,
+        items=list(result),
     )
     return response 
 

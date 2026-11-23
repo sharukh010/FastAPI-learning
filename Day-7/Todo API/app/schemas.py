@@ -1,5 +1,5 @@
 from enum import Enum 
-from pydantic import BaseModel,Field 
+from pydantic import BaseModel,Field,ConfigDict
 from datetime import datetime,date  
 
 class Priority(str,Enum): 
@@ -32,8 +32,10 @@ class TodoPatch(BaseModel):
     priority: Priority | None = None 
     due_date: str | None = Field(default=None,pattern=r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")
 
-class Todo(TodoCreate): 
-    id: int 
+class Todo(TodoCreate):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
     created_at: datetime
     updated_at: datetime 
 
