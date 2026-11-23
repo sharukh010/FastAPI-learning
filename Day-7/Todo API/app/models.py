@@ -1,8 +1,9 @@
-from sqlalchemy import String, Boolean, Date , Enum, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Boolean, Date , Enum, DateTime, func , select 
+from sqlalchemy.orm import Mapped, mapped_column, Session
 from app.database import Base 
 from app.schemas import Priority
 from datetime import date,datetime, timezone
+import app.exceptions as exceptions 
 
 class Todo(Base): 
     __tablename__ = "todos"
@@ -22,3 +23,21 @@ class Todo(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc)
     )
+
+def isTitleUnique(title: str,db: Session): 
+    count = db.scalar(
+        select(func.count()).select_from(
+            Todo
+        ).where(
+            Todo.title.ilike(title)
+        )
+    )
+    return count == 0
+
+def process_and_check_title(title: str,db: Session): 
+    title = title.strip()
+    if not isTitleUnique(title,db): 
+        raise exceptions.DuplicateTitle(title)
+    if title == "": 
+        raise exceptions.EmptyTitle()
+    return title 
