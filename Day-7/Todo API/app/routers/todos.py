@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import app.exceptions as exceptions 
 import app.models as models   
 from typing import Annotated
-from sqlalchemy import select 
+from sqlalchemy import select , delete
 from sqlalchemy.orm import Session 
 from app.database import get_db
 
@@ -114,7 +114,7 @@ def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate,db: Sessi
     return todos[todo_id]
 
 @router.patch("/{todo_id}",response_model=Todo)
-def update_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoPatch): 
+def update_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoPatch,db:Session = Depends(get_db)): 
     if todo_id not in todos: 
         raise exceptions.TodoNotFound
     if payload.title is not None: 
@@ -128,15 +128,23 @@ def update_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoPatch):
     return todos[todo_id]
 
 @router.delete("/{todo_id}",status_code=status.HTTP_204_NO_CONTENT)
-def delete_todo(todo_id: int = Path(ge=1)): 
-    if todo_id not in todos: 
-        raise exceptions.TodoNotFound(todo_id=todo_id)
-    del todos[todo_id]
+def delete_todo(todo_id: int = Path(ge=1),db: Session = Depends(get_db)): 
+    result = db.execute(
+        delete(models.Todo).where(
+            models.Todo.id == todo_id
+        )
+    )
+    db.commit()
+    if result.rowcount == 0: 
+        raise exceptions.TodoNotFound(todo_id)
+    return 
 
 @router.delete("/")
-def delete_completed_todos(completed: bool): 
-    completed_todo_ids = [t.id for t in todos.values() if t.completed == completed]
-    count = len(completed_todo_ids)
-    for id in completed_todo_ids: 
-        del todos[id]
-    return {"deleted":count}
+def delete_completed_todos(completed: bool = True,db: Session = Depends(get_db)): 
+    result = db.execute(
+            delete(models.Todo).where(
+                models.Todo.completed == completed
+            )
+        )
+    db.commit()
+    return {"deleted":result.rowcount}
