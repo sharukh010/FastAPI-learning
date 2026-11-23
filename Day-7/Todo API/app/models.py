@@ -9,10 +9,10 @@ class Todo(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True,index=True)
     title: Mapped[str] = mapped_column(String(100),index=True)
-    description: Mapped[str] = mapped_column(String(500),default=None)
+    description: Mapped[str | None] = mapped_column(String(500),default=None)
     completed: Mapped[bool] = mapped_column(Boolean,default=False)
     priority: Mapped[Priority] = mapped_column(Enum(Priority),default=Priority.medium)
-    due_date: Mapped[date] = mapped_column(Date,default=None)
+    due_date: Mapped[date | None] = mapped_column(Date,default=None)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc)
