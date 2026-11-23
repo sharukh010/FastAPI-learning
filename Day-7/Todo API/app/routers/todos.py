@@ -26,7 +26,7 @@ router = APIRouter(
 
 @router.post("/",response_model=Todo,status_code=status.HTTP_201_CREATED)
 def create_todo(payload: TodoCreate,db: Session = Depends(get_db)): 
-    payload.title = process_and_check_title(payload.title,db)
+    payload.title = process_and_check_title(payload.title,db,todo_id)
     todo = models.Todo(**payload.model_dump())
     db.add(todo)
     db.commit()
@@ -120,7 +120,7 @@ def get_todo(todo_id:int = Path(ge=1),db: Session = Depends(get_db)):
 
 @router.put("/{todo_id}",response_model=Todo)
 def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate,db: Session = Depends(get_db)): 
-    payload.title  = process_and_check_title(payload.title,db)
+    payload.title  = process_and_check_title(payload.title,db,todo_id)
     payload.description = payload.description.strip()
     todo = db.scalar(
         update(models.Todo).where(
@@ -137,17 +137,21 @@ def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate,db: Sessi
 
 @router.patch("/{todo_id}",response_model=Todo)
 def update_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoPatch,db:Session = Depends(get_db)): 
-    if todo_id not in todos: 
-        raise exceptions.TodoNotFound
     if payload.title is not None: 
-        payload.title = payload.title = process_and_check_title(payload.title,db)
+        payload.title = payload.title = process_and_check_title(payload.title,db,todo_id)
     if payload.description is not None: 
         payload.description = payload.description.strip()
-    old_todo = todos[todo_id]
-    updated_todo = old_todo.model_dump()
-    updated_todo.update(**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
-    todos[todo_id] = updated_todo
-    return todos[todo_id]
+    todo = db.scalar(
+        update(models.Todo).where(
+            models.Todo.id == todo_id
+        ).values(**payload.model_dump(exclude_unset=True)).returning(
+            models.Todo
+        )
+    )
+    db.commit()
+    if todo is None: 
+        raise exceptions.TodoNotFound(todo_id)
+    return todo 
 
 @router.delete("/{todo_id}",status_code=status.HTTP_204_NO_CONTENT)
 def delete_todo(todo_id: int = Path(ge=1),db: Session = Depends(get_db)): 
