@@ -103,11 +103,12 @@ def get_todo(todo_id:int = Path(ge=1),db: Session = Depends(get_db)):
     return todo 
 
 @router.put("/{todo_id}",response_model=Todo)
-def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate): 
-    if todo_id not in todos: 
+def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate,db: Session = Depends(get_db)): 
+    todo = db.get(models.Todo,todo_id)
+    if todo is None: 
         raise exceptions.TodoNotFound(todo_id=todo_id)
     old_todo = todos[todo_id]
-    payload.title = payload.title = process_and_check_title(payload.title)
+    payload.title  = process_and_check_title(payload.title)
     payload.description = payload.description.strip()
     todos[todo_id] = Todo(id=old_todo.id,created_at=old_todo.created_at,**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
     return todos[todo_id]
