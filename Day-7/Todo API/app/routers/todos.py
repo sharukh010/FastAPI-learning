@@ -26,7 +26,7 @@ router = APIRouter(
 
 @router.post("/",response_model=Todo,status_code=status.HTTP_201_CREATED)
 def create_todo(payload: TodoCreate,db: Session = Depends(get_db)): 
-    payload.title = process_and_check_title(payload.title,db,todo_id)
+    payload.title = process_and_check_title(payload.title,db)
     todo = models.Todo(**payload.model_dump())
     db.add(todo)
     db.commit()
