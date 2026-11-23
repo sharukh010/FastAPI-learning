@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import app.exceptions as exceptions 
 import app.models as models   
 from typing import Annotated
-from sqlalchemy import select , delete
+from sqlalchemy import select , delete , func 
 from sqlalchemy.orm import Session 
 from app.database import get_db
 
@@ -79,13 +79,28 @@ def list_todos(
 @router.get("/stats",response_model=StatsResponse,status_code=status.HTTP_200_OK)
 def get_stats(db: Session = Depends(get_db)): 
     today = datetime.now(zone).date()
-    total = len(todos.values())
-    completed = len([t for t in todos.values() if t.completed == True])
-    pending = len([t for t in todos.values() if t.completed == False])
-    low = len([t for t in todos.values() if t.priority == Priority.low])
-    medium = len([t for t in todos.values() if t.priority == Priority.medium])
-    high = len([t for t in todos.values() if t.priority == Priority.high])
-    over_due = len([t for t in todos.values() if t.due_date is not None and (t.due_date-today).days < 0 ])
+    total = db.scalar(select(func.count()).select_from(models.Todo))
+    completed = db.scalar(select(func.count()).select_from(models.Todo).where(
+        models.Todo.completed == True
+    ))
+    pending = db.scalar(select(func.count()).select_from(models.Todo).where(
+        models.Todo.completed == False
+    ))
+    low = db.scalar(select(func.count()).select_from(models.Todo).where(
+        models.Todo.priority == Priority.low 
+    ))
+    medium = db.scalar(select(func.count()).select_from(models.Todo).where(
+        models.Todo.priority == Priority.medium 
+    ))
+    high = db.scalar(select(func.count()).select_from(models.Todo).where(
+        models.Todo.priority == Priority.high 
+    ))
+    over_due = db.scalar(
+        select(func.count()).select_from(models.Todo).where(
+            models.Todo.due_date != None,
+            models.Todo.due_date  < today
+        )
+    ) 
     response = StatsResponse(
         total=total,
         completed=completed,
