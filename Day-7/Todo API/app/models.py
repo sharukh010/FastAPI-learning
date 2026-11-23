@@ -24,19 +24,20 @@ class Todo(Base):
         onupdate=lambda: datetime.now(timezone.utc)
     )
 
-def isTitleUnique(title: str,db: Session): 
+def isTitleUnique(title: str,db: Session,todo_id: int): 
     count = db.scalar(
         select(func.count()).select_from(
             Todo
         ).where(
-            Todo.title.ilike(title)
+            Todo.title.ilike(title),
+            Todo.id != todo_id 
         )
     )
     return count == 0
 
-def process_and_check_title(title: str,db: Session): 
+def process_and_check_title(title: str,db: Session,todo_id: int): 
     title = title.strip()
-    if not isTitleUnique(title,db): 
+    if not isTitleUnique(title,db,todo_id): 
         raise exceptions.DuplicateTitle(title)
     if title == "": 
         raise exceptions.EmptyTitle()
