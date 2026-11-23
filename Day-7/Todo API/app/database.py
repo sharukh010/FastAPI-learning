@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine 
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-DATABASE_URL = "sqlite:///./todos.db"
+DATABASE_URL = "sqlite:///Day-7/Todo API/app/todos.db"
 
 engine = create_engine(
     DATABASE_URL,

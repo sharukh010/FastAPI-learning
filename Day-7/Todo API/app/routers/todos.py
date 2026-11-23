@@ -5,7 +5,11 @@ from datetime import datetime, date, timedelta
 from app.storage import next_id, todos,isTitleUnique, process_and_check_title 
 from zoneinfo import ZoneInfo
 import app.exceptions as exceptions 
+import app.models as models   
 from typing import Annotated
+from sqlalchemy import select 
+from sqlalchemy.orm import Session 
+from app.database import get_db
 
 zone = ZoneInfo("Asia/Kolkata")
 
@@ -20,15 +24,12 @@ router = APIRouter(
 )
 
 @router.post("/",response_model=Todo,status_code=status.HTTP_201_CREATED)
-def create_todo(payload: TodoCreate): 
-    global next_id 
-
-    current_time = datetime.now(zone)
+def create_todo(payload: TodoCreate,db: Session = Depends(get_db)): 
     payload.title = process_and_check_title(payload.title)
-    payload.description = payload.description.strip()
-    todo = Todo(id=next_id,**payload.model_dump(),created_at=current_time,updated_at=current_time)
-    todos[next_id] = todo 
-    next_id += 1 
+    todo = models.Todo(**payload.model_dump())
+    db.add(todo)
+    db.commit()
+    db.refresh(todo)
     return todo 
 
 @router.get("/",response_model=TodoListResponse,status_code=status.HTTP_200_OK)
