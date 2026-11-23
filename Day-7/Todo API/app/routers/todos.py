@@ -2,12 +2,13 @@ from fastapi import APIRouter , status, Query, Path , Depends
 from app.schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
 from app.dependencies import FilteringAndPaginationDep
 from datetime import datetime, date, timedelta 
-from app.storage import next_id, todos,isTitleUnique, process_and_check_title 
+from app.storage import next_id, todos
+from app.models import isTitleUnique, process_and_check_title 
 from zoneinfo import ZoneInfo
 import app.exceptions as exceptions 
 import app.models as models   
 from typing import Annotated
-from sqlalchemy import select , delete , func 
+from sqlalchemy import select , delete , func , update 
 from sqlalchemy.orm import Session 
 from app.database import get_db
 
@@ -25,7 +26,7 @@ router = APIRouter(
 
 @router.post("/",response_model=Todo,status_code=status.HTTP_201_CREATED)
 def create_todo(payload: TodoCreate,db: Session = Depends(get_db)): 
-    payload.title = process_and_check_title(payload.title)
+    payload.title = process_and_check_title(payload.title,db)
     todo = models.Todo(**payload.model_dump())
     db.add(todo)
     db.commit()
@@ -119,21 +120,27 @@ def get_todo(todo_id:int = Path(ge=1),db: Session = Depends(get_db)):
 
 @router.put("/{todo_id}",response_model=Todo)
 def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate,db: Session = Depends(get_db)): 
-    todo = db.get(models.Todo,todo_id)
-    if todo is None: 
-        raise exceptions.TodoNotFound(todo_id=todo_id)
-    old_todo = todos[todo_id]
-    payload.title  = process_and_check_title(payload.title)
+    payload.title  = process_and_check_title(payload.title,db)
     payload.description = payload.description.strip()
-    todos[todo_id] = Todo(id=old_todo.id,created_at=old_todo.created_at,**payload.model_dump(exclude_unset=True),updated_at=datetime.now(zone))
-    return todos[todo_id]
+    todo = db.scalar(
+        update(models.Todo).where(
+            models.Todo.id == todo_id
+        ).values(**payload.model_dump()).returning(
+            models.Todo
+        )
+    )
+    db.commit()
+    if todo is None: 
+        raise exceptions.TodoNotFound(todo_id)
+
+    return todo 
 
 @router.patch("/{todo_id}",response_model=Todo)
 def update_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoPatch,db:Session = Depends(get_db)): 
     if todo_id not in todos: 
         raise exceptions.TodoNotFound
     if payload.title is not None: 
-        payload.title = payload.title = process_and_check_title(payload.title)
+        payload.title = payload.title = process_and_check_title(payload.title,db)
     if payload.description is not None: 
         payload.description = payload.description.strip()
     old_todo = todos[todo_id]
