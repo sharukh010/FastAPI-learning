@@ -1,9 +1,8 @@
-from fastapi import APIRouter , status, Query, Path , Depends
+from fastapi import APIRouter , status, Path , Depends
 from app.schemas import TodoCreate, Todo , TodoPatch , Priority, SortBy,SortOrder, TodoListResponse, StatsResponse
 from app.dependencies import FilteringAndPaginationDep
-from datetime import datetime, date, timedelta 
-from app.storage import next_id, todos
-from app.models import isTitleUnique, process_and_check_title 
+from datetime import datetime, date
+from app.models import process_and_check_title 
 from zoneinfo import ZoneInfo
 import app.exceptions as exceptions 
 import app.models as models   
