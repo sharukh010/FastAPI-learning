@@ -34,7 +34,8 @@ def create_todo(payload: TodoCreate,db: Session = Depends(get_db)):
 
 @router.get("/",response_model=TodoListResponse,status_code=status.HTTP_200_OK)
 def list_todos(
-    p: Annotated[FilteringAndPaginationDep,Depends()]
+    p: Annotated[FilteringAndPaginationDep,Depends()],
+    db: Session = Depends(get_db)
 ): 
     priority_values = {Priority.low: 1, Priority.medium: 2,Priority.high: 3}
 
@@ -76,7 +77,7 @@ def list_todos(
     return response 
 
 @router.get("/stats",response_model=StatsResponse,status_code=status.HTTP_200_OK)
-def get_stats(): 
+def get_stats(db: Session = Depends(get_db)): 
     today = datetime.now(zone).date()
     total = len(todos.values())
     completed = len([t for t in todos.values() if t.completed == True])
@@ -95,10 +96,11 @@ def get_stats():
     return response 
 
 @router.get("/{todo_id}",response_model=Todo,status_code=status.HTTP_200_OK)
-def get_todo(todo_id:int = Path(ge=1)): 
-    if todo_id not in todos: 
-        raise exceptions.TodoNotFound(todo_id=todo_id)
-    return todos[todo_id]
+def get_todo(todo_id:int = Path(ge=1),db: Session = Depends(get_db)): 
+    todo = db.get(models.Todo,todo_id)
+    if todo is None: 
+        raise exceptions.TodoNotFound(todo_id)
+    return todo 
 
 @router.put("/{todo_id}",response_model=Todo)
 def replace_todo(todo_id:Annotated[int,Path(ge=1)],payload: TodoCreate): 
