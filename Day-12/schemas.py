@@ -25,7 +25,6 @@ class TodoOut(BaseModel):
     updated_at: datetime 
 
 class OrderBy(str,Enum):
-    created_at = "created_at"
     title = "title"
     id = "id"
     due_date = "due_date"
