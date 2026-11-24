@@ -5,7 +5,7 @@ from enum import Enum
 class TodoCreate(BaseModel): 
     title: str = Field(min_length=3,max_length=100,examples=["Learn Websockets"])
     description: str | None = Field(max_length=500,default=None)
-    due_date: date | None 
+    due_date: date | None = None 
 
 
 class TodoUpdate(BaseModel): 
@@ -19,7 +19,7 @@ class TodoOut(BaseModel):
     id: int 
     title: str 
     description: str | None
-    due_date: str  
+    due_date: date | None  
     done: bool 
     created_at: datetime 
     updated_at: datetime 

@@ -22,7 +22,7 @@ def update_todo(db: Session, todo: models.Todo, data: schemas.TodoUpdate):
     for k,v in data.model_dump(exclude_unset=True).items(): 
         setattr(todo,k,v)
     db.commit()
-    db.refresh()
+    db.refresh(todo)
     return todo 
 
 def delete_todo(db: Session, todo: models.Todo): 
