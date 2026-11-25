@@ -24,7 +24,7 @@ class Post(Base):
     title: Mapped[str] = mapped_column(String(100))
     body: Mapped[str] = mapped_column(Text)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    author: Mapped["User"] = relationship(back_populates="post")
+    author: Mapped["User"] = relationship(back_populates="posts")
     comments: Mapped[list["Comment"]] = relationship(back_populates="post",cascade="all, delete-orphan")
     tags: Mapped[list["Tag"]]  = relationship(secondary=post_tags,back_populates="posts")
 
@@ -42,4 +42,3 @@ class Tag(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(30),unique=True)
     posts: Mapped[list["Post"]] = relationship(secondary=post_tags,back_populates="tags")
-    

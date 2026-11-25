@@ -33,7 +33,7 @@ class UserWithPosts(UserOut):
 class PostCreate(BaseModel): 
     title: str 
     body: str 
-    tags_names: list[str] = [] 
+    tag_names: list[str] = [] 
 
 class CommentCreate(BaseModel): 
     text: str 
